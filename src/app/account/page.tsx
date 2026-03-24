@@ -72,7 +72,7 @@ export default function AccountPage() {
           </div>
           <div>
             <span className="text-sm text-light-300">Display Name</span>
-            <p className="text-light-100">{user?.display_name}</p>
+            <p className="text-light-100">{user?.email?.split("@")[0]}</p>
           </div>
         </div>
       </Card>
