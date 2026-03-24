@@ -1,65 +1,101 @@
-import Image from "next/image";
+import Link from "next/link";
+import PricingSection from "./pricing/PricingSection";
+import FAQSection from "./pricing/FAQSection";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex flex-col">
+      {/* Hero */}
+      <section className="relative py-20 md:py-32 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-light-100 leading-tight">
+            Eat Where Tokyo <span className="text-primary">Locals</span> Eat
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          <p className="mt-6 text-lg md:text-xl text-light-300 max-w-2xl mx-auto leading-relaxed">
+            Find incredible restaurants that tourists never discover. Generate booking messages in perfect Japanese. No language skills needed.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/search"
+              className="inline-flex items-center justify-center bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-lg text-lg font-medium transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Find Restaurants — It&apos;s Free
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center border border-dark-600 hover:border-light-300 text-light-100 px-8 py-3.5 rounded-lg text-lg font-medium transition-colors"
             >
-              Learning
-            </a>{" "}
-            center.
+              See Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Pain Points */}
+      <section className="py-16 px-4 bg-dark-800">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              q: "Can't find the real gems?",
+              a: "Google shows tourist restaurants. We show you where locals actually eat.",
+            },
+            {
+              q: "Can't read Japanese?",
+              a: "Our AI translates everything and generates booking messages you can copy and send.",
+            },
+            {
+              q: "Can't make reservations?",
+              a: "Get perfectly written Japanese reservation messages in seconds.",
+            },
+          ].map((item) => (
+            <div key={item.q} className="text-center p-6">
+              <h3 className="text-xl font-bold text-primary mb-3">{item.q}</h3>
+              <p className="text-light-300 leading-relaxed">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-light-100 mb-12">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { step: "1", title: "Search", desc: "Pick your area, cuisine, and budget" },
+              { step: "2", title: "Discover", desc: "See curated restaurants with difficulty ratings and booking tips" },
+              { step: "3", title: "Book", desc: "Generate a Japanese booking message and send it" },
+            ].map((s) => (
+              <div key={s.step} className="text-center">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">
+                  {s.step}
+                </div>
+                <h3 className="text-lg font-bold text-light-100 mb-2">{s.title}</h3>
+                <p className="text-light-300">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-16 px-4 bg-dark-800">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-light-100 mb-12">Simple Pricing</h2>
+          <PricingSection />
+          <p className="text-center text-light-300 text-sm mt-6">
+            Or pay $3 per message without a pass
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-light-100 mb-12">FAQ</h2>
+          <FAQSection />
         </div>
-      </main>
+      </section>
     </div>
   );
 }
