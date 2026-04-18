@@ -11,9 +11,9 @@ interface PricingModalProps {
 }
 
 const plans = [
-  { type: "7day" as const, label: "7-Day Pass", price: "$19" },
-  { type: "14day" as const, label: "14-Day Pass", price: "$29", popular: true },
-  { type: "30day" as const, label: "30-Day Pass", price: "$39", best: true },
+  { type: "7day" as const, label: "7-Day Pass", price: "$29" },
+  { type: "14day" as const, label: "14-Day Pass", price: "$49", popular: true },
+  { type: "30day" as const, label: "30-Day Pass", price: "$79", best: true },
 ];
 
 export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
@@ -24,7 +24,10 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
   const handleCheckout = async (passType: string) => {
     setLoading(passType);
     try {
-      const body: Record<string, string> = { pass_type: passType };
+      const body: Record<string, string> = {
+        pass_type: passType,
+        redirect_to: restaurantId ? `/generate/${restaurantId}` : "/search",
+      };
       if (passType === "single" && restaurantId) {
         body.restaurant_id = restaurantId;
       }
@@ -74,17 +77,6 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
           </button>
         ))}
 
-        <div className="text-center pt-2">
-          <p className="text-sm text-light-300 mb-3">Or pay $3 for this message only</p>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!!loading}
-            onClick={() => handleCheckout("single")}
-          >
-            {loading === "single" ? "Loading..." : "Pay Per Message"}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

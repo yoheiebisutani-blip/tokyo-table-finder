@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
 interface Pass {
   type: "7day" | "14day" | "30day";
@@ -11,34 +11,46 @@ interface Pass {
 interface PassContextType {
   pass: Pass | null;
   hasActivePass: boolean;
-  activatePass: (type: "7day" | "14day" | "30day") => void;
-  deactivatePass: () => void;
+  refreshFromDB: () => Promise<void>;
 }
 
 const PassContext = createContext<PassContextType | undefined>(undefined);
 
 export function PassProvider({ children }: { children: ReactNode }) {
   const [pass, setPass] = useState<Pass | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const activatePass = (type: "7day" | "14day" | "30day") => {
-    const now = new Date();
-    const days = type === "7day" ? 7 : type === "14day" ? 14 : 30;
-    const expires = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-    setPass({
-      type,
-      started_at: now.toISOString(),
-      expires_at: expires.toISOString(),
-    });
-  };
+  const refreshFromDB = useCallback(async () => {
+    try {
+      const res = await fetch("/api/user/pass");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.has_active_pass && data.pass_type && data.expires_at) {
+        setPass({
+          type: data.pass_type,
+          started_at: new Date().toISOString(),
+          expires_at: data.expires_at,
+        });
+      } else {
+        setPass(null);
+      }
+    } catch {
+      // Not logged in or network error — leave pass as-is
+    }
+  }, []);
 
-  const deactivatePass = () => {
-    setPass(null);
-  };
+  useEffect(() => {
+    refreshFromDB().finally(() => setIsLoaded(true));
+  }, [refreshFromDB]);
 
   const hasActivePass = pass ? new Date(pass.expires_at) > new Date() : false;
 
+  if (!isLoaded) {
+    return <>{children}</>;
+  }
+
   return (
-    <PassContext.Provider value={{ pass, hasActivePass, activatePass, deactivatePass }}>
+    <PassContext.Provider value={{ pass, hasActivePass, refreshFromDB }}>
       {children}
     </PassContext.Provider>
   );

@@ -14,7 +14,7 @@ export default function PricingPage() {
       <PricingSection />
 
       <p className="text-center text-light-300 text-sm mt-6 mb-16">
-        Or pay $3 per message without a pass
+        All plans include the same features — only the duration differs.
       </p>
 
       <div className="max-w-3xl mx-auto">

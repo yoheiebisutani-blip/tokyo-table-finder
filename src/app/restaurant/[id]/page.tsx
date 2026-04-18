@@ -1,13 +1,34 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { getRestaurantById } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth-context";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import DifficultyBadge from "@/components/restaurant/DifficultyBadge";
 import CuisineBadge from "@/components/restaurant/CuisineBadge";
+import Link from "next/link";
+
+const FREE_LIMIT = 3;
+const STORAGE_KEY = "ttf_viewed_restaurants";
+
+function getViewedIds(): string[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function recordView(id: string) {
+  const viewed = getViewedIds();
+  if (!viewed.includes(id)) {
+    viewed.push(id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(viewed));
+  }
+}
 
 export default function RestaurantDetailPage({
   params,
@@ -16,8 +37,20 @@ export default function RestaurantDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const [isLocked, setIsLocked] = useState(false);
   const restaurant = getRestaurantById(id);
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    const viewed = getViewedIds();
+    const isNew = !viewed.includes(id);
+    if (isNew && viewed.length >= FREE_LIMIT) {
+      setIsLocked(true);
+    } else {
+      recordView(id);
+    }
+  }, [id, isLoggedIn]);
 
   if (!restaurant) {
     return (
@@ -30,6 +63,48 @@ export default function RestaurantDetailPage({
 
   const difficultyLabels = ["Very Easy", "Easy", "Moderate", "Hard", "Very Hard"];
   const stars = Array.from({ length: 5 }, (_, i) => (i < restaurant.difficulty ? "★" : "☆")).join("");
+
+  if (isLocked) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <button
+          onClick={() => router.back()}
+          className="text-light-300 hover:text-light-100 text-sm mb-4 inline-flex items-center gap-1 transition-colors"
+        >
+          ← Back
+        </button>
+
+        {/* Restaurant name visible */}
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-light-100">{restaurant.name_en}</h1>
+          <p className="text-lg text-light-300 mt-1">{restaurant.name_ja}</p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <CuisineBadge cuisine={restaurant.cuisine_display_en} />
+            <Badge>{restaurant.area_display_en}</Badge>
+          </div>
+        </div>
+
+        {/* Register wall */}
+        <div className="border border-primary/40 bg-primary/5 rounded-2xl p-8 text-center">
+          <h2 className="text-xl font-bold text-light-100 mb-3">
+            Sign up free to see booking details
+          </h2>
+          <p className="text-light-300 mb-6 max-w-md mx-auto">
+            You&apos;ve viewed {FREE_LIMIT} restaurants. Create a free account to keep browsing — booking difficulty, reservation methods, and more.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href={`/login?redirect=/restaurant/${id}`}>
+              <Button size="lg">Create Free Account</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" size="lg">Log In</Button>
+            </Link>
+          </div>
+          <p className="text-xs text-light-300 mt-4">No credit card required</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -48,13 +123,6 @@ export default function RestaurantDetailPage({
           <h1 className="text-2xl md:text-3xl font-bold text-light-100">{restaurant.name_en}</h1>
           <p className="text-lg text-light-300 mt-1">{restaurant.name_ja}</p>
         </div>
-        <button
-          onClick={() => setIsFavorite(!isFavorite)}
-          className={`text-2xl transition-colors ${isFavorite ? "text-primary" : "text-light-300 hover:text-primary"}`}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-        >
-          {isFavorite ? "♥" : "♡"}
-        </button>
       </div>
 
       {/* Tags */}

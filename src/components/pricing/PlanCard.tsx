@@ -6,22 +6,26 @@ interface PlanCardProps {
   name: string;
   price: string;
   duration: string;
+  desc?: string;
   features: { label: string; included: boolean }[];
   badge?: string;
   badgeColor?: "primary" | "gold";
   highlighted?: boolean;
   onBuy: () => void;
+  loading?: boolean;
 }
 
 export default function PlanCard({
   name,
   price,
   duration,
+  desc,
   features,
   badge,
   badgeColor = "primary",
   highlighted = false,
   onBuy,
+  loading = false,
 }: PlanCardProps) {
   return (
     <div
@@ -46,6 +50,7 @@ export default function PlanCard({
         <span className="text-3xl font-bold text-light-100">{price}</span>
       </div>
       <p className="text-sm text-light-300 mt-1">Valid for {duration}</p>
+      {desc && <p className="text-xs text-light-300 mt-1 italic">{desc}</p>}
 
       <ul className="flex flex-col gap-2 mt-5 mb-6 flex-1">
         {features.map((f) => (
@@ -60,8 +65,8 @@ export default function PlanCard({
         ))}
       </ul>
 
-      <Button variant={highlighted ? "primary" : "outline"} onClick={onBuy} className="w-full">
-        Buy Now
+      <Button variant={highlighted ? "primary" : "outline"} onClick={onBuy} disabled={loading} className="w-full">
+        {loading ? "Loading..." : "Buy Now"}
       </Button>
     </div>
   );

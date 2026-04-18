@@ -1,16 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { usePass } from "@/lib/pass-context";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
 
+interface PassStatus {
+  has_active_pass: boolean;
+  pass_type: string | null;
+  expires_at: string | null;
+  days_remaining: number | null;
+}
+
 export default function AccountPage() {
   const router = useRouter();
   const { user, isLoggedIn, logout } = useAuth();
-  const { pass, hasActivePass, activatePass, deactivatePass } = usePass();
+  const [passStatus, setPassStatus] = useState<PassStatus | null>(null);
+  const [loadingPass, setLoadingPass] = useState(true);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetch("/api/user/pass")
+      .then((r) => r.json())
+      .then((data) => setPassStatus(data))
+      .catch(() => setPassStatus(null))
+      .finally(() => setLoadingPass(false));
+  }, [isLoggedIn]);
 
   if (!isLoggedIn) {
     return (
@@ -31,16 +48,27 @@ export default function AccountPage() {
       {/* Pass status */}
       <Card className="mb-6">
         <h2 className="text-lg font-bold text-light-100 mb-3">Pass Status</h2>
-        {hasActivePass && pass ? (
+        {loadingPass ? (
+          <p className="text-light-300 text-sm">Loading...</p>
+        ) : passStatus?.has_active_pass ? (
           <div>
             <p className="text-light-200">
-              <span className="font-semibold capitalize">{pass.type.replace("day", "-Day")} Pass</span>
+              <span className="font-semibold capitalize">
+                {passStatus.pass_type?.replace("day", "-Day")} Pass
+              </span>
               {" — "}
-              Expires {new Date(pass.expires_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              {passStatus.days_remaining} day{passStatus.days_remaining !== 1 ? "s" : ""} remaining
             </p>
-            <Button variant="outline" size="sm" className="mt-3" onClick={deactivatePass}>
-              Deactivate (Dev)
-            </Button>
+            {passStatus.expires_at && (
+              <p className="text-sm text-light-300 mt-1">
+                Expires{" "}
+                {new Date(passStatus.expires_at).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            )}
           </div>
         ) : (
           <div>
@@ -52,16 +80,6 @@ export default function AccountPage() {
         )}
       </Card>
 
-      {/* Dev tools for testing */}
-      <Card className="mb-6">
-        <h2 className="text-lg font-bold text-light-100 mb-3">Dev Tools (Testing)</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => activatePass("7day")}>Activate 7-Day</Button>
-          <Button size="sm" variant="outline" onClick={() => activatePass("14day")}>Activate 14-Day</Button>
-          <Button size="sm" variant="outline" onClick={() => activatePass("30day")}>Activate 30-Day</Button>
-        </div>
-      </Card>
-
       {/* Profile */}
       <Card className="mb-6">
         <h2 className="text-lg font-bold text-light-100 mb-3">Profile</h2>
@@ -69,10 +87,6 @@ export default function AccountPage() {
           <div>
             <span className="text-sm text-light-300">Email</span>
             <p className="text-light-100">{user?.email}</p>
-          </div>
-          <div>
-            <span className="text-sm text-light-300">Display Name</span>
-            <p className="text-light-100">{user?.email?.split("@")[0]}</p>
           </div>
         </div>
       </Card>

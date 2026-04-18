@@ -9,10 +9,9 @@ function getStripeInstance(): Stripe {
 }
 
 export const PASS_PRICES: Record<string, { amount: number; label: string; days?: number }> = {
-  '7day': { amount: 1900, label: '7-Day Pass ($19)', days: 7 },
-  '14day': { amount: 2900, label: '14-Day Pass ($29)', days: 14 },
-  '30day': { amount: 3900, label: '30-Day Pass ($39)', days: 30 },
-  single: { amount: 300, label: 'Single Message ($3)' },
+  '7day': { amount: 2900, label: '7-Day Pass ($29)', days: 7 },
+  '14day': { amount: 4900, label: '14-Day Pass ($49)', days: 14 },
+  '30day': { amount: 7900, label: '30-Day Pass ($79)', days: 30 },
 }
 
 export async function createCheckoutSession({
@@ -20,11 +19,13 @@ export async function createCheckoutSession({
   userEmail,
   passType,
   restaurantId,
+  redirectTo,
 }: {
   userId: string
   userEmail: string
   passType: string
   restaurantId?: string
+  redirectTo?: string
 }) {
   const stripe = getStripeInstance()
   const priceInfo = PASS_PRICES[passType]
@@ -34,6 +35,12 @@ export async function createCheckoutSession({
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const successUrl = new URL(`${appUrl}/checkout/success`)
+  successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}')
+  successUrl.searchParams.set('pass_type', passType)
+  if (redirectTo) {
+    successUrl.searchParams.set('redirect_to', redirectTo)
+  }
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -52,7 +59,7 @@ export async function createCheckoutSession({
       },
     ],
     mode: 'payment',
-    success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: successUrl.toString(),
     cancel_url: `${appUrl}/checkout/cancel`,
     metadata: {
       user_id: userId,
