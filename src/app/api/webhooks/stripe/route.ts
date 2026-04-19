@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as unknown as {
         id: string
+        customer_email: string | null
         metadata: Record<string, string>
       }
 
@@ -35,6 +36,12 @@ export async function POST(request: Request) {
       const pass_type = session.metadata.pass_type
       const restaurant_id = session.metadata.restaurant_id
       const serviceClient = createServiceClient()
+
+      // Ensure profile exists before inserting pass (FK: passes.user_id → profiles.id)
+      await serviceClient.from('profiles').upsert(
+        { id: user_id, email: session.customer_email || '' },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
 
       if (['7day', '14day', '30day'].includes(pass_type)) {
         const daysMap: Record<string, number> = {
