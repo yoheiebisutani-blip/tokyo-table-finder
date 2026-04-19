@@ -35,12 +35,10 @@ export async function createCheckoutSession({
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const successUrl = new URL(`${appUrl}/checkout/success`)
-  successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}')
-  successUrl.searchParams.set('pass_type', passType)
-  if (redirectTo) {
-    successUrl.searchParams.set('redirect_to', redirectTo)
-  }
+  const params = new URLSearchParams({ pass_type: passType })
+  if (redirectTo) params.set('redirect_to', redirectTo)
+  // {CHECKOUT_SESSION_ID} must not be URL-encoded — build the string manually
+  const successUrl = `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&${params.toString()}`
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -59,7 +57,7 @@ export async function createCheckoutSession({
       },
     ],
     mode: 'payment',
-    success_url: successUrl.toString(),
+    success_url: successUrl,
     cancel_url: `${appUrl}/checkout/cancel`,
     metadata: {
       user_id: userId,
