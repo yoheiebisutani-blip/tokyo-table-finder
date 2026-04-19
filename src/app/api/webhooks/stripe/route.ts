@@ -58,6 +58,7 @@ export async function POST(request: Request) {
           pass_type: pass_type as '7day' | '14day' | '30day',
           stripe_session_id: session.id,
           expires_at: expiresAt.toISOString(),
+          is_active: true,
         })
       } else if (pass_type === 'single') {
         await serviceClient.from('per_use_charges').insert({
